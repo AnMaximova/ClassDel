@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ClassDel
 {
@@ -11,74 +12,73 @@ namespace ClassDel
     {
         private T[] arr; //массив
         int index; // реальный размер массива
-        int n = 10;//емкость по умолчанию
-        Access<T> access;
+        const int default_capacity = 10;//емкость по умолчанию
 
-        public OneDimensionalArray(Access<T> item, bool input_mode = false) : base(item, input_mode)
+        public OneDimensionalArray(int size = default_capacity) : base(size)
         {
         }
 
-
-        private int VerifiedInput() //ввод размера массива
+        protected override void Input(int size) // создание массива
         {
-            int n;
-            bool success;
-            do
+            if (size < 0)
             {
-                Console.Write("Введите размер массива: ");
-                success = int.TryParse(Console.ReadLine(), out n);
+                Console.WriteLine("Размер массива не может быть отрицательным, устанавливаем размер по уиолчанию");
+                size = default_capacity;
             }
-            while (!success || n <= 0);
-            index = n;
-            return n;
-        }
-        protected override void InputUser(Access<T> item)
-        {
-            access = item;
-            arr = new T[VerifiedInput()];
-            Type type_arr = typeof(T);
-            Console.WriteLine($"Создаем массив типа {type_arr}");
-            for (int i = 0; i < arr.Length; i++)
-            {
-                Console.Write($"Введите {i} элемент массива: ");
-                arr[i] = access.Input_Value();
-            }
-        }
-        protected override void InputRandom(Access<T> item)
-        {
-            Random rnd = new Random();
-            access = item;
-            arr = new T[n];
-            index = n; 
-            for (int i = 0; i < arr.Length; i++)
-            {
-                arr[i] = access.Random_Value();
-            }
+            arr = new T[size];
+            index = 0;
         }
 
-        public override void Print() // вывод массива в строку
-        {
-            Type type_arr = typeof(T);
-            Console.WriteLine($"Выводим массив типа {type_arr}");
-            for(int i = 0; i < index;i++)
-            {
-                string str = access.ValueToString(arr[i]);
-                Console.Write(str + "\t");
-            }
-            Console.WriteLine();
-        }
-
-        public void Put(T obj)
+        public void Add(T obj) // добавление элемента в массив
         {
             if (index >= arr.Length)
             {
                 Console.WriteLine("Массив заполнен, увеличиваем емкость");
-                Array.Resize(ref arr, (index*2 + 1));
+                Array.Resize(ref arr, index*2 + 1);
             }
             arr[index++] = obj;
         }
 
-        public void Sort() 
+        public override void Print() // вывод массива в строку
+        {
+            if (index == 0)
+            {
+                Console.WriteLine("Массив пустой");
+                return;
+            }
+            for (int i = 0; i < index; i++)
+            {
+                Console.Write($"{arr[i]}\t");
+            } 
+            Console.WriteLine();
+        }
+
+        public void Remove(int num) // удаление элемента из массива
+        {
+            if (num >= index || num < 0)
+            {
+                Console.WriteLine("Индекс элемента вне размеров массива, удаление невозможно");
+                return;
+            }
+            for (int i = num; i < index - 1; i++)
+            {
+                arr[i] = arr[i + 1];
+            }
+            index--;
+        }
+
+        public void Reverse() // переворот массива
+        {
+            T temp;
+            for (int i = 0; i < index / 2; i++)
+            {
+                temp = arr[i];
+                arr[i] = arr[index - 1 - i];
+                arr[index - 1 - i] = temp;
+            }
+        }
+
+        public void Sort() // сортировка массива
         {
             T temp;
             for (int i = 0; i < index; i++)
@@ -96,13 +96,13 @@ namespace ClassDel
             }
         }
 
-        public T Min()
+        public T Min() // получение минимального элемента массива
         {
             T min = arr[0];
             for (int i = 1; i < index; i++)
             {
                 int compare = min.CompareTo(arr[i]);
-                if (compare > 0) 
+                if (compare > 0)
                 {
                     min = arr[i];
                 }
@@ -110,7 +110,7 @@ namespace ClassDel
             return min;
         }
 
-        public T Max()
+        public T Max() // получение максимального элемента массива
         {
             T max = arr[0];
             for (int i = 1; i < index; i++)
@@ -123,5 +123,190 @@ namespace ClassDel
             }
             return max;
         }
+
+        public void ForEachAction(Action<T> action) // выполнение метода для всех элементов 
+        {
+            for (int i = 0; i < index; i++)
+            {
+                action(arr[i]);
+            }
+        }
+
+        public int CountCondition(Func<T, bool> condition) // подсчет кол-ва элементов в массиве, удовлетворяющих переданному условию
+        {
+            int count = 0;
+            for (int i = 0; i < index; ++i)
+            {
+                if (condition(arr[i]))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        public int Count()  // подсчет количества элементов в массиве
+        {
+            return index;
+        }
+
+        public bool AtLeastForOne(Func<T, bool> condition) // проверка переданного условия хотя бы для одного элемента массива
+        {
+            bool fl = false;
+            this.ForEachAction((x) =>
+            {
+                if (condition(x))
+                {
+                    fl = true;
+                }
+            });
+            return fl;
+        }
+
+        public bool ForEveryone(Func<T, bool> condition) // проверка переданного условия для всех элементов массива
+        {
+            int count = 0;
+            this.ForEachAction((x) =>
+            {
+                if (condition(x))
+                {
+                    count++;
+                }
+            });
+            if (count == index)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool Find(T item) // проверка наличия элемента в массиве
+        {
+            bool fl = false;
+            for (int i = 0; i < index; i++)
+            {
+                int compare = item.CompareTo(arr[i]);
+                if (compare == 0)
+                {
+                    fl = true;
+                    break;
+                }
+            }
+            return fl;
+        }
+
+        public T FirstSatisfyCondition(Func<T, bool> condition) // получение первого элемента в массиве, удовлетворяющего условию
+        {
+            for (int i = 0; i < index; ++i)
+            {
+                if (condition(arr[i]))
+                {
+                    return arr[i];
+                }
+            }
+            Console.WriteLine("Элемент не найден, значение по умолчанию");
+            return default(T);
+        }
+
+        public T[] ArrayWithCondition(Func<T, bool> condition) // получение элементов массива, удовлетворяющих переданному условию
+        {
+            T[] arr_cond = new T[index];
+            int count = 0;
+            for (int i = 0; i < arr_cond.Length; i++)
+            {
+                if (condition(arr[i]))
+                {
+                    arr_cond[count++] = arr[i];
+                }
+            }
+            if (count == 0) 
+            {
+                Console.WriteLine("Элементы массива, удовлетворяющие условию не найдены");
+            }
+            Array.Resize(ref arr_cond, count);
+            return arr_cond;
+        }
+
+        public T[] AllElements() //получение элементов массива выбранного типа
+        {
+            T[] arr_ = new T[index];
+            for (int i = 0; i < arr_.Length; i++)
+            {
+                arr_[i] = arr[i];
+            }
+            return arr_;
+        }
+
+        public T[] ArrayWithPosNum(int position, int num) // получить заданное количество элементов массива с указанного индекса
+        {
+            T[] arr_cond = new T[index];
+            int count = 0;
+            try
+            {
+                if (position < 0 || num < 0)
+                {
+                    throw new Exception("Недопустимые отрицательные значения");
+                }
+                if ((position + num) > index)
+                {
+                    throw new Exception("Выход за границы массива");
+                }
+                for (int i = position; i < position + num; i++)
+                {
+                    arr_cond[count++] = arr[i];
+                } 
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Ошибка: {e.Message}");
+            }
+            Array.Resize(ref arr_cond, count);
+            return arr_cond;
+        }
+
+        public void UsingForeach() // итерирование с помощью цикла foreach
+        {
+            T[] arr_ = new T[index];
+            Array.Copy(arr,arr_,index);
+            foreach(T item in arr_)
+            {
+                Console.Write($"{item}\t");
+            }
+            Console.WriteLine();
+        }
+
+        public string[] ProjectionToString() // проекция элементов массива в тип string
+        {
+            string[] arr_str = new string[index];
+            for (int i = 0; i < index; i++)
+            {
+                arr_str[i] = Convert.ToString(arr[i]);
+            }
+            return arr_str;
+        }
+
+        public int[] ProjectionToInt() // проекция элементов массива в тип int
+        {
+            try
+            {
+                int[] arr_int = new int[index];
+                for (int i = 0; i < index; i++)
+                {
+                    arr_int[i] = Convert.ToInt32(arr[i]);
+                }
+                return arr_int;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Ошибка: {e.Message}");
+                Console.WriteLine("Проекция элементов массива в тип int невозможна");
+                int[] arr_int = new int[0];
+                return arr_int;
+            }
+        }
     }
+    public delegate void Action<T>(T action);
 }

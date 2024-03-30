@@ -7,4 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Access.cs" />
+    <Compile Remove="ProcessingString.cs" />
+    <Compile Remove="ProsessingInt.cs" />
+  </ItemGroup>
+
 </Project>

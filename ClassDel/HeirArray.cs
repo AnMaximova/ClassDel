@@ -8,19 +8,12 @@ namespace ClassDel
 {
     public abstract class HeirArray<T>
     {
-        public HeirArray(Access<T> item, bool input_mode = false)
+        public HeirArray(int size)
         {
-            if (input_mode)
-            {
-                InputUser(item);
-            }
-            else
-            {
-                InputRandom(item);
-            }
+            Input(size);
+            
         }
-        protected abstract void InputUser(Access<T> item);
-        protected abstract void InputRandom(Access<T> item);
+        protected abstract void Input(int size);
         public abstract void Print();
     }
 }
