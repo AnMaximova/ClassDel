@@ -307,6 +307,45 @@ namespace ClassDel
                 return arr_int;
             }
         }
+
+        public TResult MinProjection<TResult>(Func<T, TResult> projection) // получение минимального элемента массива по его проекции
+        {
+            Comparer<TResult> comparer = Comparer<TResult>.Default;
+            TResult min = projection(arr[0]);
+            Console.WriteLine("Проекция элементов");
+            Console.Write($"{min:f3}\t");
+            for (int i = 1; i < index; i++)
+            {
+                var curr_el = projection(arr[i]);
+                Console.Write($"{curr_el:f3}\t");
+                if (comparer.Compare(min,curr_el) > 0)
+                {
+                    min = curr_el;
+                }
+            }
+            Console.WriteLine();
+            return min;
+        }
+
+        public TResult MaxProjection<TResult>(Func<T, TResult> projection) // получение максимального элемента массива по его проекции
+        {
+            Comparer<TResult> comparer = Comparer<TResult>.Default;
+            TResult max = projection(arr[0]);
+            Console.WriteLine("Проекция элементов");
+            Console.Write($"{max:f3}\t");
+            for (int i = 1; i < index; i++)
+            {
+                var curr_el = projection(arr[i]);
+                Console.Write($"{curr_el:f3}\t");
+                if (comparer.Compare(max, curr_el) < 0)
+                {
+                    max = curr_el;
+                }
+            }
+            Console.WriteLine();
+            return max;
+        }
+
     }
     public delegate void Action<T>(T action);
 }
