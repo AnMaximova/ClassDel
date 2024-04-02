@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClassDel
 {
-    public abstract class HeirArray<T>
+    public abstract class HeirArray<T> : IPrinter 
     {
         public HeirArray(int size)
         {
