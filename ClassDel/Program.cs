@@ -31,6 +31,8 @@ class Program
             test_int.Add(rnd.Next(-10,11));
         }
         test_int.Print();
+        int n = test_int.CountCondition((x) => x<0);
+        Console.WriteLine($"{n}");
         test_int.Sort();
         test_int.Print();
         Console.WriteLine($"Минимальный элемент массива равен: {test_int.Min()}");
